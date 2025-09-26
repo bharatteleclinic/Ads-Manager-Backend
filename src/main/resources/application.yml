@@ -1,1 +1,21 @@
-spring.application.name=adsmanager
+spring:
+  datasource:
+    url: jdbc:postgresql://testingdb.cjqm4aimakm9.ap-south-1.rds.amazonaws.com:5432/adsmanager
+    username: bharatteleclinic
+    password: Blat786YUnUs!
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update  
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  jwt:
+    secret: ${JWT_SECRET:defaultsecretkeydefaultsecretkey}
+    expiration: 3600000  # 1 hour in ms
+      
+server:
+  port: 8081      
