@@ -16,9 +16,10 @@ public class User {
 
     private String fname;
     private String lname;
+    @Column(unique = true, nullable = true)
     private String email;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = true)
     private String number;
 
     private String otp;        // latest OTP

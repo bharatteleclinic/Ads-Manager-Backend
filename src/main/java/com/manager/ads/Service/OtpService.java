@@ -2,22 +2,62 @@ package com.manager.ads.Service;
 
 import java.util.*;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-
-
+import io.github.cdimascio.dotenv.Dotenv;
 
 @Service
 public class OtpService {
-    private static final String AISENSY_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NTExYjJlNzMwODMxNTgzNTU0ODA5YSIsIm5hbWUiOiJCaGFyYXQgVGVsZUNsaW5pYyBQdnQgTFRELiIsImFwcE5hbWUiOiJBaVNlbnN5IiwiY2xpZW50SWQiOiI2NjczZWE0M2UwYTE0NzBiZmQwNGNkZDkiLCJhY3RpdmVQbGFuIjoiQkFTSUNfTU9OVEhMWSIsImlhdCI6MTc1NjI3NzE0MH0.NUTaztsv-ISw-y__TuIPPH2N6e-ceHONkaGeYkITvqQ";
-    private static final String AISENSY_BASE_URL = "https://backend.aisensy.com/campaign/t1/api/v2";
+
+    private final String AISENSY_API_KEY;
+    private final String AISENSY_BASE_URL;
+
+    private final String FAST2SMS_API_KEY;
+    private final String ENTITY_ID;
+    private final String MESSAGE_ID;
+    private final String FAST2SMS_URL;
+
+    private final String CLIENT_ID;
+    private final String CLIENT_SECRET;
+    private final String REFRESH_TOKEN;
+    private final String TOKEN_URL;
+    private final String GMAIL_SEND_URL;
+    private final String SENDER_EMAIL;
 
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
+    // Constructor
     public OtpService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
+
+        // ✅ Correct dotenv usage
+        Dotenv dotenv = Dotenv.load(); // loads .env automatically from project root
+
+        // Load all keys from .env
+        AISENSY_API_KEY = dotenv.get("AISENSY_API_KEY");
+        AISENSY_BASE_URL = dotenv.get("AISENSY_BASE_URL");
+
+        FAST2SMS_API_KEY = dotenv.get("FAST2SMS_API_KEY");
+        ENTITY_ID = dotenv.get("ENTITY_ID");
+        MESSAGE_ID = dotenv.get("MESSAGE_ID");
+        FAST2SMS_URL = dotenv.get("FAST2SMS_URL");
+
+        CLIENT_ID = dotenv.get("CLIENT_ID");
+        CLIENT_SECRET = dotenv.get("CLIENT_SECRET");
+        REFRESH_TOKEN = dotenv.get("REFRESH_TOKEN");
+        TOKEN_URL = dotenv.get("TOKEN_URL");
+        GMAIL_SEND_URL = dotenv.get("GMAIL_SEND_URL");
+        SENDER_EMAIL = dotenv.get("SENDER_EMAIL");
     }
 
     public boolean sendOtpViaAiSensy(String phoneNumber, String otp) {
@@ -66,10 +106,7 @@ public class OtpService {
         }
     }
 
-    private static final String FAST2SMS_URL = "https://www.fast2sms.com/dev/bulkV2";
-    private static final String FAST2SMS_API_KEY = "DQ9H3zxYZIc7Hw3pBZjlw0G3SB21f5jMQvQg7Zwxw4SLQ3p0tnCxwSbZ60fC";
-    private static final String ENTITY_ID = "1207173614440376237";
-    private static final String MESSAGE_ID = "178255";
+
 
     public boolean sendOtpViaFast2Sms(String phoneNumber, String otp) {
         try {
@@ -99,5 +136,66 @@ public class OtpService {
             return false;
         }
     }
+
+    // private final RestTemplate restTemplate = new RestTemplate();
+
+    private String getAccessToken() throws IOException {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("client_id", CLIENT_ID);
+        params.add("client_secret", CLIENT_SECRET);
+        params.add("refresh_token", REFRESH_TOKEN);
+        params.add("grant_type", "refresh_token");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+        ResponseEntity<String> response = restTemplate.postForEntity(TOKEN_URL, request, String.class);
+
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new RuntimeException("Failed to get access token: " + response.getBody());
+        }
+
+        JsonNode json = objectMapper.readTree(response.getBody());
+        return json.get("access_token").asText();
+    }
+
+    public boolean sendOtpViaGmail(String toEmail, String otp) {
+    try {
+        String accessToken = getAccessToken();
+
+        String subject = "Your OTP Code";
+        String body = "Hello,\n\nYour OTP code is: " + otp + "\n\nRegards,\nBharat TeleClinic";
+
+        // Build raw MIME message manually (no jakarta.mail needed)
+        String rawMessage = Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString((
+                        "To: " + toEmail + "\r\n" +
+                        "From: " + SENDER_EMAIL + "\r\n" +
+                        "Subject: " + subject + "\r\n\r\n" +
+                        body
+                ).getBytes(StandardCharsets.UTF_8));
+
+        Map<String, String> payload = Map.of("raw", rawMessage);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(accessToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, String>> request = new HttpEntity<>(payload, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(GMAIL_SEND_URL, request, String.class);
+
+        System.out.println("📧 Gmail Response " + response.getStatusCode() + ": " + response.getBody());
+
+        return response.getStatusCode().is2xxSuccessful();
+    } catch (Exception e) {
+        System.err.println("💥 Gmail OTP error: " + e.getMessage());
+        return false;
+    }
+}
+
+    
 }
 

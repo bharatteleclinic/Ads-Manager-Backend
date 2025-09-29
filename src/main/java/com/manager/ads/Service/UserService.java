@@ -6,11 +6,11 @@ import com.manager.ads.Repository.UserRepository;
 
 import java.util.Random;
 import java.util.Optional;
-
 @Service
 public class UserService {
+
     private final UserRepository userRepository;
-    private final OtpService otpService;
+    private final OtpService otpService; // Your existing OTP sender service (Gmail/SMS)
 
     public UserService(UserRepository userRepository, OtpService otpService) {
         this.userRepository = userRepository;
@@ -22,38 +22,57 @@ public class UserService {
         return String.format("%04d", new Random().nextInt(10000));
     }
 
-    // Signup with fname, lname, email, number
-    public String signup(User user) {
-        Optional<User> optionalUser = userRepository.findByNumber(user.getNumber());
+    /**
+     * Send OTP for signup or login
+     */
+    public String requestOtp(String input, String fname, String lname) {
+        boolean isEmail = input.contains("@");
+        User user;
 
-        User existingUser;
-        if (optionalUser.isPresent()) {
-            // ✅ Reuse existing user instead of blocking signup
-            existingUser = optionalUser.get();
+        if (isEmail) {
+            user = userRepository.findByEmail(input).orElseGet(() -> {
+                User newUser = new User();
+                newUser.setEmail(input);
+                newUser.setFname(fname);
+                newUser.setLname(lname);
+                newUser.setVerified(false);
+                return newUser;
+            });
         } else {
-            existingUser = new User();
-            existingUser.setNumber(user.getNumber());
+            user = userRepository.findByNumber(input).orElseGet(() -> {
+                User newUser = new User();
+                newUser.setNumber(input);
+                newUser.setFname(fname);
+                newUser.setLname(lname);
+                newUser.setVerified(false);
+                return newUser;
+            });
         }
 
-        existingUser.setFname(user.getFname());
-        existingUser.setLname(user.getLname());
-        existingUser.setEmail(user.getEmail());
-        existingUser.setVerified(false);
-
         String otp = generateOtp();
-        existingUser.setOtp(otp);
-        userRepository.save(existingUser);
+        user.setOtp(otp);
+        userRepository.save(user);
 
-        // Send OTP via SMS & WhatsApp
-        otpService.sendOtpViaFast2Sms(user.getNumber(), otp);
-        otpService.sendOtpViaAiSensy(user.getNumber(), otp);
-
-        return "Signup OTP sent to " + user.getNumber();
+        // Send OTP
+        if (isEmail) {
+            otpService.sendOtpViaGmail(input, otp);
+            return "OTP sent to email " + input;
+        } else {
+            otpService.sendOtpViaFast2Sms(input, otp);
+            otpService.sendOtpViaAiSensy(input, otp);
+            return "OTP sent to phone " + input;
+        }
     }
 
-    // Verify signup OTP
-    public boolean verifySignupOtp(String number, String otp) {
-        return userRepository.findByNumber(number)
+    /**
+     * Verify OTP (email or phone)
+     */
+    public boolean verifyOtp(String input, String otp) {
+        boolean isEmail = input.contains("@");
+        Optional<User> optionalUser = isEmail ? userRepository.findByEmail(input)
+                                              : userRepository.findByNumber(input);
+
+        return optionalUser
                 .filter(u -> otp != null && otp.equals(u.getOtp()))
                 .map(u -> {
                     u.setOtp(null); // clear OTP after verification
@@ -64,36 +83,32 @@ public class UserService {
                 .orElse(false);
     }
 
-    // Request login OTP (only number)
-    public String requestLoginOtp(String number) {
-        Optional<User> optionalUser = userRepository.findByNumber(number);
-
-        if (optionalUser.isEmpty() || !optionalUser.get().isVerified()) {
-            throw new RuntimeException("User not found or not verified");
-        }
-
-        User user = optionalUser.get();
-        String otp = generateOtp();
-        user.setOtp(otp);
-        userRepository.save(user);
-
-        // Send OTP via SMS & WhatsApp
-        otpService.sendOtpViaFast2Sms(number, otp);
-        otpService.sendOtpViaAiSensy(number, otp);
-
-        return "Login OTP sent to " + number;
+    /**
+     * Check if user exists (used before final signup)
+     */
+    public boolean isUserExists(String input) {
+        return input.contains("@") ? userRepository.findByEmail(input).isPresent()
+                                   : userRepository.findByNumber(input).isPresent();
     }
 
-    // Verify login OTP
-    public boolean verifyLoginOtp(String number, String otp) {
-        return userRepository.findByNumber(number)
-                .filter(u -> otp != null && otp.equals(u.getOtp()))
-                .map(u -> {
-                    u.setOtp(null); // clear OTP after verification
-                    userRepository.save(u);
-                    return true;
-                })
+    public boolean isOtpVerified(String input) {
+        return userRepository.findByEmail(input)
+                .map(User::isVerified)
                 .orElse(false);
     }
-}
 
+    /**
+     * Actually create user after OTP verified
+     */
+    public void createUserAfterOtpVerified(String input, String fname, String lname) {
+        boolean isEmail = input.contains("@");
+        User user = new User();
+        if (isEmail) user.setEmail(input);
+        else user.setNumber(input);
+
+        user.setFname(fname);
+        user.setLname(lname);
+        user.setVerified(true);
+        userRepository.save(user);
+    }
+}

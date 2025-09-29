@@ -5,12 +5,12 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.manager.ads.Entity.User;
 import com.manager.ads.Service.*;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
+
     private final UserService userService;
     private final JwtService jwtService;
 
@@ -19,36 +19,68 @@ public class AuthController {
         this.jwtService = jwtService;
     }
 
-    // Signup - send OTP
-    @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody User user) {
-        String message = userService.signup(user);
-        return ResponseEntity.ok(message);
+    // 1️⃣ Send OTP (Signup & Login)
+    @PostMapping("/send-otp")
+    public ResponseEntity<?> sendOtp(@RequestBody Map<String, String> request) {
+        String input = request.get("input");
+        String fname = request.get("fname"); // only required for signup
+        String lname = request.get("lname");
+
+        String message = userService.requestOtp(input, fname, lname);
+        return ResponseEntity.ok(Map.of("message", message));
     }
 
-    // Verify signup OTP
-    @PostMapping("/signup/verify")
-    public ResponseEntity<?> verifySignupOtp(@RequestParam String number, @RequestParam String otp) {
-        boolean verified = userService.verifySignupOtp(number, otp);
-        return verified ? ResponseEntity.ok("Signup verified ✅")
-                        : ResponseEntity.badRequest().body("Invalid OTP ❌");
-    }
+    // 2️⃣ Verify OTP (Signup & Login)
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> request) {
+        String input = request.get("input");
+        String otp = request.get("otp");
 
-    // Request login OTP
-    @PostMapping("/login/request")
-    public ResponseEntity<?> requestLoginOtp(@RequestParam String number) {
-        String message = userService.requestLoginOtp(number);
-        return ResponseEntity.ok(message);
-    }
-
-    // Verify login OTP and return JWT
-    @PostMapping("/login/verify")
-    public ResponseEntity<?> verifyLoginOtp(@RequestParam String number, @RequestParam String otp) {
-        boolean success = userService.verifyLoginOtp(number, otp);
-        if (success) {
-            String token = jwtService.generateToken(number);
-            return ResponseEntity.ok(Map.of("message", "Login successful ✅", "token", token));
+        boolean verified = userService.verifyOtp(input, otp);
+        if (verified) {
+            return ResponseEntity.ok(Map.of("message", "OTP verified ✅"));
         }
-        return ResponseEntity.badRequest().body("Invalid OTP ❌");
+        return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP ❌"));
+    }
+
+    // 3️⃣ Signup (after OTP verified)
+    @PostMapping("/signup")
+    public ResponseEntity<?> signup(@RequestBody Map<String, String> request) {
+        String input = request.get("input");
+        String fname = request.get("fname");
+        String lname = request.get("lname");
+
+        // Create user only if OTP was verified
+        boolean otpVerified = userService.isOtpVerified(input);
+        if (!otpVerified) {
+            return ResponseEntity.badRequest().body(Map.of("message", "OTP not verified ❌"));
+        }
+
+        userService.createUserAfterOtpVerified(input, fname, lname);
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Signup successful ✅"
+        ));
+    }
+
+    // 4️⃣ Login (after OTP verified)
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
+        String input = request.get("input");
+
+        // Check if OTP is verified for this login session
+        boolean verified = userService.isOtpVerified(input);
+        if (!verified) {
+            return ResponseEntity.badRequest().body(Map.of("message", "OTP not verified ❌"));
+        }
+
+        // Generate JWT token after OTP verification
+        String token = jwtService.generateToken(input);
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Login successful ✅",
+                "loggedIn", true,
+                "token", token
+        ));
     }
 }
