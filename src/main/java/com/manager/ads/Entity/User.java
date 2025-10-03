@@ -1,5 +1,7 @@
 package com.manager.ads.Entity;
 
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,5 +25,8 @@ public class User {
     private String number;
 
     private String otp;        // latest OTP
-    private boolean verified;  // true only after signup OTP is validated
+    private boolean verified;
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Campaign> campaigns;// true only after signup OTP is validated
 }

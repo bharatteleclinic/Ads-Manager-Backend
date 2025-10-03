@@ -161,41 +161,39 @@ public class OtpService {
     }
 
     public boolean sendOtpViaGmail(String toEmail, String otp) {
-    try {
-        String accessToken = getAccessToken();
+        try {
+            String accessToken = getAccessToken();
 
-        String subject = "Your OTP Code";
-        String body = "Hello,\n\nYour OTP code is: " + otp + "\n\nRegards,\nBharat TeleClinic";
+            String subject = "Your OTP Code";
+            String body = "Hello,\n\nYour OTP code is: " + otp + "\n\nRegards,\nBharat TeleClinic";
 
-        // Build raw MIME message manually (no jakarta.mail needed)
-        String rawMessage = Base64.getUrlEncoder()
-                .withoutPadding()
-                .encodeToString((
-                        "To: " + toEmail + "\r\n" +
-                        "From: " + SENDER_EMAIL + "\r\n" +
-                        "Subject: " + subject + "\r\n\r\n" +
-                        body
-                ).getBytes(StandardCharsets.UTF_8));
+            // Build raw MIME message manually (no jakarta.mail needed)
+            String rawMessage = Base64.getUrlEncoder()
+                    .withoutPadding()
+                    .encodeToString((
+                            "To: " + toEmail + "\r\n" +
+                            "From: " + SENDER_EMAIL + "\r\n" +
+                            "Subject: " + subject + "\r\n\r\n" +
+                            body
+                    ).getBytes(StandardCharsets.UTF_8));
 
-        Map<String, String> payload = Map.of("raw", rawMessage);
+            Map<String, String> payload = Map.of("raw", rawMessage);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(accessToken);
-        headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(accessToken);
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-        HttpEntity<Map<String, String>> request = new HttpEntity<>(payload, headers);
+            HttpEntity<Map<String, String>> request = new HttpEntity<>(payload, headers);
 
-        ResponseEntity<String> response = restTemplate.postForEntity(GMAIL_SEND_URL, request, String.class);
+            ResponseEntity<String> response = restTemplate.postForEntity(GMAIL_SEND_URL, request, String.class);
 
-        System.out.println("📧 Gmail Response " + response.getStatusCode() + ": " + response.getBody());
+            System.out.println("📧 Gmail Response " + response.getStatusCode() + ": " + response.getBody());
 
-        return response.getStatusCode().is2xxSuccessful();
-    } catch (Exception e) {
-        System.err.println("💥 Gmail OTP error: " + e.getMessage());
-        return false;
-    }
-}
-
-    
+            return response.getStatusCode().is2xxSuccessful();
+        } catch (Exception e) {
+            System.err.println("💥 Gmail OTP error: " + e.getMessage());
+            return false;
+        }
+    }    
 }
 
