@@ -22,18 +22,18 @@ public class AuthController {
     // 1️⃣ Send OTP (Signup & Login)
     @PostMapping("/send-otp")
     public ResponseEntity<?> sendOtp(@RequestBody Map<String, String> request) {
-        String input = request.get("input");
-        String fname = request.get("fname"); // only required for signup
-        String lname = request.get("lname");
+        String input = request.get("identifier"); // email or number
+        String fname = request.get("firstName"); // only required for signup
+        String lname = request.get("lastName");
 
         String message = userService.requestOtp(input, fname, lname);
-        return ResponseEntity.ok(Map.of("message", message));
+        return ResponseEntity.ok(Map.of("message", message , "success", true));
     }
 
     // 2️⃣ Verify OTP (Signup & Login)
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> request) {
-        String input = request.get("input");
+        String input = request.get("identifier");
         String otp = request.get("otp");
 
         boolean verified = userService.verifyOtp(input, otp);
@@ -46,9 +46,9 @@ public class AuthController {
     // 3️⃣ Signup (after OTP verified)
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody Map<String, String> request) {
-        String input = request.get("input");
-        String fname = request.get("fname");
-        String lname = request.get("lname");
+        String input = request.get("identifier");
+        String fname = request.get("firstName");
+        String lname = request.get("lastName");
 
         // Create user only if OTP was verified
         boolean otpVerified = userService.isOtpVerified(input);
@@ -59,14 +59,14 @@ public class AuthController {
         userService.createUserAfterOtpVerified(input, fname, lname);
 
         return ResponseEntity.ok(Map.of(
-                "message", "Signup successful ✅"
+            "message", "Signup successful ✅" , "success", true
         ));
     }
 
     // 4️⃣ Login (after OTP verified)
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
-        String input = request.get("input");
+        String input = request.get("identifier");
 
         // Check if OTP is verified for this login session
         boolean verified = userService.isOtpVerified(input);

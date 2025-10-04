@@ -17,5 +17,12 @@ public class CampaignService {
     public Campaign createCampaign(Campaign campaign) {
         return campaignRepository.save(campaign);
     }
-}
 
+    public String getLatestCampaignUrl() {
+        Campaign latest = campaignRepository
+                .findTopByOrderByCreatedAtDesc()
+                .orElse(null);
+
+        return latest != null ? latest.getAdUrl() : null;
+    }
+}

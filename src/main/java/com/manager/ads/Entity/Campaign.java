@@ -38,7 +38,7 @@ public class Campaign {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    // private String creativeUrl; // S3 link
+    private String adUrl;
 
     // private Double costPerDevicePerMonth;
     

@@ -1,6 +1,9 @@
 package com.manager.ads.Entity;
 
+import java.time.LocalDateTime;
 import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,5 +31,10 @@ public class User {
     private boolean verified;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Campaign> campaigns;// true only after signup OTP is validated
+    private List<Campaign> campaigns;
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
 }
