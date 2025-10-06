@@ -37,4 +37,10 @@ public class User {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "token")
+    private String token;
+
+    @Column(name = "is_logged_in")
+    private boolean isLoggedIn = false;
+
 }

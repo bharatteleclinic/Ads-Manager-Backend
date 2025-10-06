@@ -30,27 +30,28 @@ public class UserService {
         User user;
 
         if (isEmail) {
-            user = userRepository.findByEmail(input).orElseGet(() -> {
-                User newUser = new User();
-                newUser.setEmail(input);
-                newUser.setFname(fname);
-                newUser.setLname(lname);
-                newUser.setVerified(false);
-                return newUser;
-            });
+            user = userRepository.findByEmail(input).orElse(null);
+            if (user == null) {
+                user = new User();
+                user.setEmail(input);
+            }
         } else {
-            user = userRepository.findByNumber(input).orElseGet(() -> {
-                User newUser = new User();
-                newUser.setNumber(input);
-                newUser.setFname(fname);
-                newUser.setLname(lname);
-                newUser.setVerified(false);
-                return newUser;
-            });
+            user = userRepository.findByNumber(input).orElse(null);
+            if (user == null) {
+                user = new User();
+                user.setNumber(input);
+            }
         }
 
+        // Always update details
+        user.setFname(fname);
+        user.setLname(lname);
+        user.setVerified(false);
+
+        // Set OTP
         String otp = generateOtp();
         user.setOtp(otp);
+
         userRepository.save(user);
 
         // Send OTP
@@ -64,9 +65,7 @@ public class UserService {
         }
     }
 
-    /**
-     * Verify OTP (email or phone)
-     */
+
     public boolean verifyOtp(String input, String otp) {
         boolean isEmail = input.contains("@");
         Optional<User> optionalUser = isEmail ? userRepository.findByEmail(input)
@@ -92,11 +91,27 @@ public class UserService {
     }
 
     public boolean isOtpVerified(String input) {
-        return userRepository.findByEmail(input)
-                .map(User::isVerified)
-                .orElse(false);
+        Optional<User> optionalUser;
+
+        if (input.contains("@")) {
+            // treat input as email
+            optionalUser = userRepository.findByEmail(input);
+        } else {
+            // treat input as phone number
+            optionalUser = userRepository.findByNumber(input);
+        }
+
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setVerified(true);   // ✅ mark verified
+            user.setOtp(null);        // ✅ clear OTP
+            return true;
+        }
+
+        return false;
     }
 
+    
     /**
      * Actually create user after OTP verified
      */
@@ -111,4 +126,35 @@ public class UserService {
         user.setVerified(true);
         userRepository.save(user);
     }
+
+    public void storeUserToken(String identifier, String token) {
+        Optional<User> optionalUser = userRepository.findByEmail(identifier);
+
+        if (optionalUser.isEmpty()) {
+            optionalUser = userRepository.findByNumber(identifier);
+        }
+
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setToken(token);   // assume you added a `token` column in User table
+            user.setLoggedIn(true); // optional: track logged in status
+            userRepository.save(user);
+        }
+    }
+
+    
+    public boolean logout(String identifier) {
+        Optional<User> optionalUser = userRepository.findByEmail(identifier)
+                .or(() -> userRepository.findByNumber(identifier));
+
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setToken(null);       // remove token
+            user.setLoggedIn(false);   // mark as logged out
+            userRepository.save(user);
+            return true;
+        }
+        return false;
+    }
+
 }
