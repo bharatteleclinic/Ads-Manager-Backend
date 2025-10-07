@@ -33,28 +33,37 @@ public class UserService {
             user = userRepository.findByEmail(input).orElse(null);
             if (user == null) {
                 user = new User();
-                user.setEmail(input);
+                user.setEmail(input);  // set only once for new user
             }
         } else {
             user = userRepository.findByNumber(input).orElse(null);
             if (user == null) {
                 user = new User();
-                user.setNumber(input);
+                user.setNumber(input); // set only once for new user
             }
         }
 
-        // Always update details
-        user.setFname(fname);
-        user.setLname(lname);
+        // update details safely
+        if (fname != null && !fname.isBlank()) {
+            user.setFname(fname);
+        }
+        if (lname != null && !lname.isBlank()) {
+            user.setLname(lname);
+        }
+
         user.setVerified(false);
 
-        // Set OTP
+        // generate & set OTP
         String otp = generateOtp();
         user.setOtp(otp);
 
+        // reset token when requesting new OTP
+        user.setToken(null);
+
+        // save (update if exists, insert if new)
         userRepository.save(user);
 
-        // Send OTP
+        // send OTP
         if (isEmail) {
             otpService.sendOtpViaGmail(input, otp);
             return "OTP sent to email " + input;
@@ -64,6 +73,7 @@ public class UserService {
             return "OTP sent to phone " + input;
         }
     }
+
 
 
     public boolean verifyOtp(String input, String otp) {
@@ -90,21 +100,20 @@ public class UserService {
                                    : userRepository.findByNumber(input).isPresent();
     }
 
-    public boolean isOtpVerified(String input) {
+   public boolean isOtpVerified(String input) {
         Optional<User> optionalUser;
 
         if (input.contains("@")) {
-            // treat input as email
             optionalUser = userRepository.findByEmail(input);
         } else {
-            // treat input as phone number
             optionalUser = userRepository.findByNumber(input);
         }
 
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            user.setVerified(true);   // ✅ mark verified
-            user.setOtp(null);        // ✅ clear OTP
+            user.setVerified(true);   // mark verified
+            user.setOtp(null);        // clear OTP
+            userRepository.save(user); // ✅ persist update
             return true;
         }
 
@@ -117,15 +126,34 @@ public class UserService {
      */
     public void createUserAfterOtpVerified(String input, String fname, String lname) {
         boolean isEmail = input.contains("@");
-        User user = new User();
-        if (isEmail) user.setEmail(input);
-        else user.setNumber(input);
+        Optional<User> optionalUser;
 
+        if (isEmail) {
+            optionalUser = userRepository.findByEmail(input);
+        } else {
+            optionalUser = userRepository.findByNumber(input);
+        }
+
+        User user;
+        if (optionalUser.isPresent()) {
+            user = optionalUser.get();   // ✅ update existing user
+        } else {
+            user = new User();           // ✅ only create if truly new
+            if (isEmail) {
+                user.setEmail(input);
+            } else {
+                user.setNumber(input);
+            }
+        }
+
+        // update details
         user.setFname(fname);
         user.setLname(lname);
         user.setVerified(true);
-        userRepository.save(user);
+
+        userRepository.save(user);  // ✅ this will now update instead of duplicate insert
     }
+
 
     public void storeUserToken(String identifier, String token) {
         Optional<User> optionalUser = userRepository.findByEmail(identifier);
@@ -143,10 +171,10 @@ public class UserService {
     }
 
     
-    public boolean logout(String identifier) {
-        Optional<User> optionalUser = userRepository.findByEmail(identifier)
-                .or(() -> userRepository.findByNumber(identifier));
+    public boolean logoutByToken(String token) {
+    if (token == null || token.isBlank()) return false;
 
+    Optional<User> optionalUser = userRepository.findByToken(token);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
             user.setToken(null);       // remove token
@@ -156,5 +184,6 @@ public class UserService {
         }
         return false;
     }
+
 
 }
