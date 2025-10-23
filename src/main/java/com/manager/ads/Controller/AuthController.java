@@ -101,95 +101,40 @@ public class AuthController {
             ));
         }
 
-        // ✅ Generate JWT token
         String token = jwtService.generateToken(input);
 
-        // ✅ Store token in DB
-        userService.storeUserToken(input, token);
-
-        // ✅ Store token in cookie
         ResponseCookie cookie = ResponseCookie.from("token", token)
-                .httpOnly(true)   // protect against JS access
-                .secure(false)     // only over HTTPS (set to false for localhost testing)
-                .path("/")        // available for all endpoints
-                .maxAge(24 * 60 * 60)
-                .sameSite("None") // 1 day
-                .build();
+            .httpOnly(true)   
+            .secure(false) 
+            .path("/")
+            .maxAge(24 * 60 * 60)
+            .build();
 
         response.addHeader("Set-Cookie", cookie.toString());
 
         return ResponseEntity.ok(Map.of(
                 "message", "Login successful",
                 "success", true,
-                "token", token   // still send in JSON in case frontend wants to store in localStorage too
+                "token", token
         ));
     }
-
-
-    @GetMapping("/check")
-    public ResponseEntity<?> checkToken(@CookieValue(value = "token", required = false) String token) {
-        System.out.println("Token from cookie: " + token); 
-        if (token == null || token.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "success", false,
-                "message", "Token is missing"
-            ));
-        }
-
-        try {
-            boolean isValid = jwtService.validateToken(token);
-            if (isValid) {
-                return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "message", "Token is valid "
-                ));
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                    "success", false,
-                    "message", "Invalid token"
-                ));
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                "success", false,
-                "message", "Token validation failed"
-            ));
-        }
-    }
-
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@CookieValue(value = "token", required = false) String token,
                                     HttpServletResponse response) {
 
-        if (token == null || token.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of(
-                    "message", "No token found in cookie ",
-                    "success", false
-            ));
-        }
-
-        boolean loggedOut = userService.logoutByToken(token);
-
-        // Clear cookie
         ResponseCookie clearCookie = ResponseCookie.from("token", "")
                 .httpOnly(true)
                 .secure(false)
-                .path("/")
-                .maxAge(0)      
+                .path("/")     
+                .maxAge(0)
                 .build();
+
         response.addHeader("Set-Cookie", clearCookie.toString());
 
-        if (loggedOut) {
-            return ResponseEntity.ok(Map.of(
-                    "message", "Logout successful ✅",
-                    "success", true
-            ));
-        } else {
-            return ResponseEntity.badRequest().body(Map.of(
-                    "message", "Invalid token or user not found ❌",
-                    "success", false
-            ));
-        }
+        return ResponseEntity.ok(Map.of(
+                "message", "Logout successful",
+                "success", true
+        ));
     }
 }

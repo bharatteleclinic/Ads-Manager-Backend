@@ -1,14 +1,10 @@
 package com.manager.ads.Repository;
 
-
+import com.manager.ads.Entity.ConsultationDevice;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import com.manager.ads.Entity.Campaign;
-
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface CampaignRepository extends JpaRepository<Campaign, Long> {
+public interface ConsultationDeviceRepository extends JpaRepository<ConsultationDevice, Long> {
 }
-

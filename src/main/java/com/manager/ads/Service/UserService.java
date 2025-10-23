@@ -22,9 +22,7 @@ public class UserService {
         return String.format("%04d", new Random().nextInt(10000));
     }
 
-    /**
-     * Send OTP for signup or login
-     */
+
     public String requestOtp(String input, String fname, String lname) {
         boolean isEmail = input.contains("@");
         User user;
@@ -57,8 +55,6 @@ public class UserService {
         String otp = generateOtp();
         user.setOtp(otp);
 
-        // reset token when requesting new OTP
-        user.setToken(null);
 
         // save (update if exists, insert if new)
         userRepository.save(user);
@@ -92,9 +88,7 @@ public class UserService {
                 .orElse(false);
     }
 
-    /**
-     * Check if user exists (used before final signup)
-     */
+
     public boolean isUserExists(String input) {
         return input.contains("@") ? userRepository.findByEmail(input).isPresent()
                                    : userRepository.findByNumber(input).isPresent();
@@ -152,37 +146,6 @@ public class UserService {
         user.setVerified(true);
 
         userRepository.save(user);  // ✅ this will now update instead of duplicate insert
-    }
-
-
-    public void storeUserToken(String identifier, String token) {
-        Optional<User> optionalUser = userRepository.findByEmail(identifier);
-
-        if (optionalUser.isEmpty()) {
-            optionalUser = userRepository.findByNumber(identifier);
-        }
-
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
-            user.setToken(token);   // assume you added a `token` column in User table
-            user.setLoggedIn(true); // optional: track logged in status
-            userRepository.save(user);
-        }
-    }
-
-    
-    public boolean logoutByToken(String token) {
-    if (token == null || token.isBlank()) return false;
-
-    Optional<User> optionalUser = userRepository.findByToken(token);
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
-            user.setToken(null);       // remove token
-            user.setLoggedIn(false);   // mark as logged out
-            userRepository.save(user);
-            return true;
-        }
-        return false;
     }
 
 

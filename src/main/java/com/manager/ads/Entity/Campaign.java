@@ -1,8 +1,11 @@
 package com.manager.ads.Entity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,6 +13,7 @@ import lombok.*;
 @Entity
 @Data
 @NoArgsConstructor
+@Builder
 @AllArgsConstructor
 @Table(name = "campaigns")
 public class Campaign {
@@ -30,22 +34,34 @@ public class Campaign {
     @Column(nullable = false)
     private String adsType;
 
-    @ManyToOne(fetch = FetchType.LAZY)  // Many campaigns can belong to one user
-    @JoinColumn(name = "user_id")       // Foreign key column
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")  
+    @JsonBackReference   
     private User user;
     
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
+
+    @ManyToMany
+    @JoinTable(
+        name = "consultation_devices_campaigns", // create a new mapping table
+        joinColumns = @JoinColumn(name = "campaign_id"),
+        inverseJoinColumns = @JoinColumn(name = "device_id")
+    )
+    private List<ConsultationDevice> selectedDevices;
+
+    @Column(name = "device_count")
+    private int deviceCount;
+
+    // helper method to update count automatically
+    public void updateDeviceCount() {
+        this.deviceCount = (selectedDevices != null) ? selectedDevices.size() : 0;
+    }
+
+    private Double totalPrice;
+    
     private String adUrl;
 
-    // private Double costPerDevicePerMonth;
-    
-    // // Optional: number of devices
-    // private Integer devicesCount;
-    
-    // private Double totalCost;
-
-    // getters and setters
 }

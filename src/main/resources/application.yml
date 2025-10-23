@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://testingdb.cjqm4aimakm9.ap-south-1.rds.amazonaws.com:5432/adsmanager
+    url: jdbc:postgresql://testingdb.cjqm4aimakm9.ap-south-1.rds.amazonaws.com:5432/postgres
     username: bharatteleclinic
     password: Blat786YUnUs!
     driver-class-name: org.postgresql.Driver
@@ -15,8 +15,19 @@ spring:
 
   jwt:
     secret: ${JWT_SECRET:defaultsecretkeydefaultsecretkey}
-    expiration: 3600000  # 1 hour in ms
+    expiration: 3600000 
+
+  servlet:
+      multipart:
+        max-file-size: 50MB      
+        max-request-size: 100MB   
+  http:
+    multipart:
+      enabled: true
       
 server:
   address: 0.0.0.0
-  port: 8080      
+  port: 8080  
+
+  tomcat:
+    max-swallow-size: 100MB     

@@ -10,5 +10,4 @@ public class AdsmanagerApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(AdsmanagerApplication.class, args);
 	}
-
 }
