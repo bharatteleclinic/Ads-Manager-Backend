@@ -1,6 +1,5 @@
 package com.manager.ads.Controller;
 
-import org.json.JSONObject;
 import org.springframework.web.bind.annotation.*;
 
 import com.manager.ads.Entity.ConsultationDevice;

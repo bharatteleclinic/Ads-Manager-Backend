@@ -1,10 +1,8 @@
 package com.manager.ads.Controller;
 
-import java.net.http.HttpHeaders;
 import java.util.Map;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -82,6 +80,7 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody Map<String, String> request, HttpServletResponse response) {
         String input = request.get("identifier");
         String otp = request.get("otp");
+        System.out.println("Login attempt for identifier: " + otp);
 
         // ✅ Check if user exists
         if (!userService.isUserExists(input)) {
@@ -102,15 +101,6 @@ public class AuthController {
 
         String token = jwtService.generateToken(input);
 
-        // ResponseCookie cookie = ResponseCookie.from("token", token)
-        //     .httpOnly(true)   
-        //     .secure(false) 
-        //     .path("/")
-        //     .maxAge(24 * 60 * 60)
-        //     .build();
-
-        // response.addHeader("Set-Cookie", cookie.toString());
-
         Long userId = userService.getUserIdByIdentifier(input);
 
         return ResponseEntity.ok(Map.of(
@@ -125,14 +115,6 @@ public class AuthController {
     public ResponseEntity<?> logout(@CookieValue(value = "token", required = false) String token,
                                     HttpServletResponse response) {
 
-        // ResponseCookie clearCookie = ResponseCookie.from("token", "")
-        //         .httpOnly(true)
-        //         .secure(false)
-        //         .path("/")     
-        //         .maxAge(0)
-        //         .build();
-
-        // response.addHeader("Set-Cookie", clearCookie.toString());
 
         return ResponseEntity.ok(Map.of(
                 "message", "Logout successful",
