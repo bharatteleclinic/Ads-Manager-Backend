@@ -25,7 +25,6 @@ public class AuthController {
         this.jwtService = jwtService;
     }
 
-    // 1️⃣ Send OTP (Signup & Login)
     @PostMapping("/send-otp")
     public ResponseEntity<?> sendOtp(@RequestBody Map<String, String> request) {
         String input = request.get("identifier"); // email or number
@@ -103,19 +102,22 @@ public class AuthController {
 
         String token = jwtService.generateToken(input);
 
-        ResponseCookie cookie = ResponseCookie.from("token", token)
-            .httpOnly(true)   
-            .secure(false) 
-            .path("/")
-            .maxAge(24 * 60 * 60)
-            .build();
+        // ResponseCookie cookie = ResponseCookie.from("token", token)
+        //     .httpOnly(true)   
+        //     .secure(false) 
+        //     .path("/")
+        //     .maxAge(24 * 60 * 60)
+        //     .build();
 
-        response.addHeader("Set-Cookie", cookie.toString());
+        // response.addHeader("Set-Cookie", cookie.toString());
+
+        Long userId = userService.getUserIdByIdentifier(input);
 
         return ResponseEntity.ok(Map.of(
                 "message", "Login successful",
                 "success", true,
-                "token", token
+                "token", token ,
+                "userId", userId
         ));
     }
 
@@ -123,14 +125,14 @@ public class AuthController {
     public ResponseEntity<?> logout(@CookieValue(value = "token", required = false) String token,
                                     HttpServletResponse response) {
 
-        ResponseCookie clearCookie = ResponseCookie.from("token", "")
-                .httpOnly(true)
-                .secure(false)
-                .path("/")     
-                .maxAge(0)
-                .build();
+        // ResponseCookie clearCookie = ResponseCookie.from("token", "")
+        //         .httpOnly(true)
+        //         .secure(false)
+        //         .path("/")     
+        //         .maxAge(0)
+        //         .build();
 
-        response.addHeader("Set-Cookie", clearCookie.toString());
+        // response.addHeader("Set-Cookie", clearCookie.toString());
 
         return ResponseEntity.ok(Map.of(
                 "message", "Logout successful",

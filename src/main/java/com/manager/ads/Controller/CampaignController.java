@@ -16,9 +16,6 @@ import com.manager.ads.Repository.CampaignRepository;
 import com.manager.ads.Repository.ConsultationDeviceRepository;
 import com.manager.ads.Repository.UserRepository;
 import com.manager.ads.Service.CampaignService;
-import com.manager.ads.Service.JwtService;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 
 @RestController
@@ -28,15 +25,13 @@ public class CampaignController {
     private final CampaignService campaignService;
     private final UserRepository userRepository;
     private final CampaignRepository campaignRepository;
-    private final ConsultationDeviceRepository consultationDeviceRepository;
-    private final JwtService jwtService ;
+    private final ConsultationDeviceRepository consultationDeviceRepository; // Assuming you already have this
 
-    public CampaignController(CampaignService campaignService, UserRepository userRepository, CampaignRepository campaignRepository, ConsultationDeviceRepository consultationDeviceRepository, JwtService jwtService) {
+    public CampaignController(CampaignService campaignService, UserRepository userRepository, CampaignRepository campaignRepository, ConsultationDeviceRepository consultationDeviceRepository) {
         this.campaignService = campaignService;
         this.userRepository = userRepository;
         this.campaignRepository = campaignRepository;
         this.consultationDeviceRepository = consultationDeviceRepository;
-        this.jwtService = jwtService;
     }
 
     @PostMapping(consumes = "multipart/form-data")
@@ -48,45 +43,11 @@ public class CampaignController {
             @RequestParam String brandCategory,
             @RequestParam String adsType,
             @RequestParam("adFile") MultipartFile adFile,
-            HttpServletRequest request
+            @RequestParam Long userId
     ) throws Exception {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
 
-        // 1️⃣ Extract Authorization Header
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new RuntimeException("Missing or invalid Authorization header");
-        }
-
-        String token = authHeader.substring(7); // Remove "Bearer "
-
-        String email = null;
-        String number = null;
-
-        try {
-            email = jwtService.extractEmail(token);
-        } catch (Exception ignored) {
-        }
-
-        try {
-            number = jwtService.extractPhoneNumber(token);
-        } catch (Exception ignored) {
-        }
-
-        final String emailFinal = email;
-        final String numberFinal = number;
-
-        User user = null;
-        if (emailFinal != null && !emailFinal.isEmpty()) {
-            user = userRepository.findByEmail(emailFinal)
-                    .orElseThrow(() -> new RuntimeException("User not found with email: " + emailFinal));
-        } else if (numberFinal != null && !numberFinal.isEmpty()) {
-            user = userRepository.findByNumber(numberFinal)
-                    .orElseThrow(() -> new RuntimeException("User not found with number: " + numberFinal));
-        } else {
-            throw new RuntimeException("Neither email nor phone number found in token");
-        }
-
-        // 4️⃣ Create Campaign
         return campaignService.createCampaign(
                 title, type, description, objective, brandCategory, adsType, adFile, user
         );

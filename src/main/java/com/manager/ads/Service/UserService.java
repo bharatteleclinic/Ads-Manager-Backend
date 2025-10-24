@@ -148,5 +148,28 @@ public class UserService {
         userRepository.save(user);  // ✅ this will now update instead of duplicate insert
     }
 
+    public User getUserByNumber(String number) {
+        return userRepository.findByNumber(number)
+                .orElse(null); // returns null if not found
+    }
+
+    // Get user by email
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElse(null); // returns null if not found
+    }
+
+    public User getUserByIdentifier(String identifier) {
+        if (identifier.contains("@")) {
+            return userRepository.findByEmail(identifier).orElse(null);
+        } else {
+            return userRepository.findByNumber(identifier).orElse(null);
+        }
+    }
+
+    public Long getUserIdByIdentifier(String identifier) {
+        User user = getUserByIdentifier(identifier);
+        return user != null ? user.getId() : null;
+    }
 
 }

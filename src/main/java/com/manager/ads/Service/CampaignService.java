@@ -53,7 +53,7 @@ public class CampaignService {
    
     public double getPriceForCampaign(String adsType, int deviceCount) {
         Product product = productRepository.findByName(adsType + " Ads")
-                                        .orElseThrow(() -> new RuntimeException("Product not found"));
-        return (product.getPrice() * deviceCount);
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        return product.getPrice() * deviceCount * 1.18;
     }
 }
