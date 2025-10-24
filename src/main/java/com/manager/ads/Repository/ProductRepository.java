@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.manager.ads.Entity.Product;
 
 @Repository
-public interface ProductRepository extends JpaRepository<Product, String> {
+public interface ProductRepository extends JpaRepository<Product, Long> {
     
     Optional<Product> findByName(String name);
 

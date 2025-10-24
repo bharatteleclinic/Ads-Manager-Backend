@@ -1,5 +1,6 @@
 package com.manager.ads.Service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.manager.ads.Entity.Campaign;
@@ -16,10 +17,12 @@ public class CampaignService {
 
     private final CampaignRepository campaignRepository;
     private final S3Service s3Service;
+     private ProductRepository productRepository;
 
-    public CampaignService(CampaignRepository campaignRepository, S3Service s3Service) {
+    public CampaignService(CampaignRepository campaignRepository, S3Service s3Service, ProductRepository productRepository) {
         this.campaignRepository = campaignRepository;
         this.s3Service = s3Service;
+        this.productRepository = productRepository;
     }
 
     public Campaign createCampaign(String title,
@@ -47,8 +50,7 @@ public class CampaignService {
         return campaignRepository.save(campaign);
     }
 
-    private ProductRepository productRepository;
-
+   
     public double getPriceForCampaign(String adsType, int deviceCount) {
         Product product = productRepository.findByName(adsType + " Ads")
                                         .orElseThrow(() -> new RuntimeException("Product not found"));
