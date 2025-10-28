@@ -2,7 +2,6 @@ package com.manager.ads.Entity;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -45,7 +44,7 @@ public class Campaign {
 
     @ManyToMany
     @JoinTable(
-        name = "consultation_devices_campaigns", // create a new mapping table
+        name = "consultation_devices_campaigns", 
         joinColumns = @JoinColumn(name = "campaign_id"),
         inverseJoinColumns = @JoinColumn(name = "device_id")
     )
@@ -60,7 +59,13 @@ public class Campaign {
     }
 
     private Double totalPrice;
-    
+
+    @Column(nullable = false)
+    private boolean draft = false;
+
     private String adUrl;
+
+    @Column(nullable = false)
+    private boolean isApproved = false;
 
 }
