@@ -40,10 +40,7 @@ public class OtpService {
     public OtpService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
 
-        // ✅ Correct dotenv usage
-        Dotenv dotenv = Dotenv.load(); // loads .env automatically from project root
-
-        // Load all keys from .env
+        Dotenv dotenv = Dotenv.load(); 
         AISENSY_API_KEY = dotenv.get("AISENSY_API_KEY");
         AISENSY_BASE_URL = dotenv.get("AISENSY_BASE_URL");
 

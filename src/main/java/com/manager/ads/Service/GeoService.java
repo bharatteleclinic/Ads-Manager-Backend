@@ -27,14 +27,16 @@ public class GeoService {
             if (city.isEmpty()) city = address.path("town").asText("");
             if (city.isEmpty()) city = address.path("village").asText("");
 
+            String state = address.path("state").asText("");
             String pincode = address.path("postcode").asText("");
 
             Map<String, String> result = new HashMap<>();
             result.put("city", city);
+            result.put("state", state);
             result.put("pincode", pincode);
             return result;
         } catch (Exception e) {
-            return Map.of("city", "", "pincode", "");
+            return Map.of("city", "", "state", "", "pincode", "");
         }
     }
 }

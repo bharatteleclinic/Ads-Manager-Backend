@@ -34,7 +34,7 @@ public class PaymentController {
         Campaign campaign = campaignRepository.findById(campaignId)
                 .orElseThrow(() -> new RuntimeException("Campaign not found"));
 
-        double totalPrice = campaign.getTotalPrice(); // from your campaign
+        double totalPrice = campaign.getTotalPrice();
 
         String receiptId = "campaign_" + campaign.getId();
         String razorpayOrderJson = paymentService.createOrder(totalPrice, receiptId);

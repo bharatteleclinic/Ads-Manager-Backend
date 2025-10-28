@@ -15,5 +15,6 @@ public class ConsultationDeviceResponse {
     private Double latitude;
     private Double longitude;
     private String city;
-    private String pincode;
+    private String state;
+    private String pin;
 }
