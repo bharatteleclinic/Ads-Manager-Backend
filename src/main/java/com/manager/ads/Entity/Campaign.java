@@ -1,0 +1,67 @@
+package com.manager.ads.Entity;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Data
+@NoArgsConstructor
+@Builder
+@AllArgsConstructor
+@Table(name = "campaigns")
+public class Campaign {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String title;  
+
+    private String type;  
+
+    private String description;  
+
+    private String objective;  
+
+    private String brandCategory; 
+
+    @Column(nullable = false)
+    private String adsType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")  
+    @JsonBackReference   
+    private User user;
+    
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+
+    @ManyToMany
+    @JoinTable(
+        name = "consultation_devices_campaigns", // create a new mapping table
+        joinColumns = @JoinColumn(name = "campaign_id"),
+        inverseJoinColumns = @JoinColumn(name = "device_id")
+    )
+    private List<ConsultationDevice> selectedDevices;
+
+    @Column(name = "device_count")
+    private int deviceCount;
+
+    // helper method to update count automatically
+    public void updateDeviceCount() {
+        this.deviceCount = (selectedDevices != null) ? selectedDevices.size() : 0;
+    }
+
+    private Double totalPrice;
+    
+    private String adUrl;
+
+}
