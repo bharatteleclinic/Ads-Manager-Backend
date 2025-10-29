@@ -1,5 +1,6 @@
 package com.manager.ads.Entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
@@ -40,6 +41,10 @@ public class Campaign {
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
+
+    private LocalDate startDate;
+
+    private LocalDate endDate ; 
 
 
     @ManyToMany
