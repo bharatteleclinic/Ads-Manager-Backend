@@ -1,11 +1,12 @@
 package com.manager.ads.Service;
 
+import java.util.Optional;
+import java.util.Random;
+
 import org.springframework.stereotype.Service;
+
 import com.manager.ads.Entity.User;
 import com.manager.ads.Repository.UserRepository;
-
-import java.util.Random;
-import java.util.Optional;
 @Service
 public class UserService {
 

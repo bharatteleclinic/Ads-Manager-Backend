@@ -1,7 +1,6 @@
 package com.manager.ads.Service;
 
 
-import org.springframework.stereotype.Service;
 
 import com.manager.ads.Entity.Campaign;
 import com.manager.ads.Entity.User;
@@ -10,6 +9,13 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.manager.ads.Entity.Campaign;
+import com.manager.ads.Entity.User;
+import com.manager.ads.Repository.CampaignRepository;
 
 @Service
 public class CampaignService {
