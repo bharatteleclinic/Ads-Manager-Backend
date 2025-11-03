@@ -2,16 +2,15 @@ package com.manager.ads.Service;
 
 
 
+import com.manager.ads.Entity.Campaign;
+import com.manager.ads.Entity.User;
+import com.manager.ads.Repository.CampaignRepository;
+import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
-import com.manager.ads.Entity.Campaign;
-import com.manager.ads.Entity.User;
-import com.manager.ads.Repository.CampaignRepository;
 
 @Service
 public class CampaignService {
@@ -24,7 +23,7 @@ public class CampaignService {
         this.s3Service = s3Service;
     }
 
-    public Campaign createCampaign(String title, String type, String description, String objective,
+    public Campaign createCampaign(String title, String type, String description, String brandName,
             String brandCategory, String adsType, MultipartFile adFile, User user, String startDate, String endDate, double totalPrice ,
             int totalDevice, List<Integer> selectedDevices , boolean draft) throws IOException {
         // 1️⃣ Upload file to S3
@@ -35,7 +34,7 @@ public class CampaignService {
         campaign.setTitle(title);
         campaign.setType(type);
         campaign.setDescription(description);
-        campaign.setObjective(objective);
+        campaign.setBrandName(brandName);
         campaign.setStartDate(LocalDate.parse(startDate));
         campaign.setEndDate(LocalDate.parse(endDate));
         campaign.setDeviceCount(totalDevice);

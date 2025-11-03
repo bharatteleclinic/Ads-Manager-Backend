@@ -35,7 +35,7 @@ public class CampaignController {
             @RequestParam String title,
             @RequestParam String type,
             @RequestParam String description,
-            @RequestParam String objective,
+            @RequestParam String brandName,
             @RequestParam String brandCategory,
             @RequestParam String adsType,
             @RequestParam("adFile") MultipartFile adFile,
@@ -51,7 +51,7 @@ public class CampaignController {
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
 
         Campaign campaign = campaignService.createCampaign(
-            title, type, description, objective, brandCategory, adsType,
+            title, type, description, brandName, brandCategory, adsType,
             adFile, user, startDate, endDate, totalPrice, totalDevice,
             selectedDevices, draft
             );
