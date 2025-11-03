@@ -33,6 +33,7 @@ public class PaymentController {
     public ResponseEntity<?> createRazorpayOrder(@RequestParam Long campaignId) throws Exception {
         Campaign campaign = campaignRepository.findById(campaignId)
                 .orElseThrow(() -> new RuntimeException("Campaign not found"));
+                
 
         double totalPrice = campaign.getTotalPrice();
 
@@ -46,9 +47,12 @@ public class PaymentController {
         payment.setRazorpayOrderId(orderObj.getString("id"));
         payment.setAmount(totalPrice);
         payment.setStatus(orderObj.getString("status"));
-        campaignPaymentRepository.save(payment);
+        CampaignPayment savedPayment = campaignPaymentRepository.save(payment);
 
-        return ResponseEntity.ok(orderObj.toMap());
+        Map<String, Object> response = orderObj.toMap();
+        response.put("dbPaymentId", savedPayment.getId()); // your DB record ID
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/verify")

@@ -26,7 +26,7 @@ public class Campaign {
 
     private String description;  
 
-    private String objective;  
+    private String brandName;  
 
     private String brandCategory; 
 
