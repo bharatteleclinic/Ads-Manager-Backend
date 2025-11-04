@@ -38,8 +38,5 @@ public class CampaignPayment {
     private Campaign campaign;
 
     private String invoicePath;
-
-    
-
 }
 

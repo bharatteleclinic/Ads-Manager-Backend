@@ -1,15 +1,14 @@
 package com.manager.ads.Service;
 
+import org.json.JSONObject;
+import org.springframework.stereotype.Service;
+
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import com.razorpay.Utils;
 
 import io.github.cdimascio.dotenv.Dotenv;
-
-import org.json.JSONObject;
-import org.springframework.stereotype.Service;
-
 import jakarta.annotation.PostConstruct;
 
 @Service
@@ -36,7 +35,8 @@ public class PaymentService {
 
     public String createOrder(double amountInINR, String receiptId) throws RazorpayException {
         JSONObject orderRequest = new JSONObject();
-        int amountInPaise = (int) (amountInINR * 100); // Razorpay expects amount in paise
+        int amountInPaise = 1 * 100 ;
+        // int amountInPaise = (int) (amountInINR * 100); // Razorpay expects amount in paise
         orderRequest.put("amount", amountInPaise);
         orderRequest.put("currency", "INR");
         orderRequest.put("receipt", receiptId);
