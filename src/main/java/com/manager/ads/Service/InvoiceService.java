@@ -98,9 +98,9 @@ public class InvoiceService {
         paymentTable.setSpacingBefore(10f);
         paymentTable.setSpacingAfter(10f);
         paymentTable.addCell(makeCell("Payment Details", sectionFont, gray, 2, Element.ALIGN_LEFT));
-        paymentTable.addCell(makeCell("Payment ID", normalFont, null, 1, Element.ALIGN_LEFT));
-        paymentTable.addCell(makeCell(payment.getRazorpayPaymentId() != null ? payment.getRazorpayPaymentId() : "N/A",
-                normalFont, null, 1, Element.ALIGN_LEFT));
+        // paymentTable.addCell(makeCell("Payment ID", normalFont, null, 1, Element.ALIGN_LEFT));
+        // paymentTable.addCell(makeCell(payment.getRazorpayPaymentId() != null ? payment.getRazorpayPaymentId() : "N/A",
+        //         normalFont, null, 1, Element.ALIGN_LEFT));
         paymentTable.addCell(makeCell("Order ID", normalFont, null, 1, Element.ALIGN_LEFT));
         paymentTable.addCell(makeCell(payment.getRazorpayOrderId(), normalFont, null, 1, Element.ALIGN_LEFT));
         paymentTable.addCell(makeCell("Status", normalFont, null, 1, Element.ALIGN_LEFT));
@@ -117,7 +117,7 @@ public class InvoiceService {
             deviceTable.addCell(makeCell("Device Serial", sectionFont, gray, 1, Element.ALIGN_CENTER));
             deviceTable.addCell(makeCell("Model Number", sectionFont, gray, 1, Element.ALIGN_CENTER));
             deviceTable.addCell(makeCell("Enterprise ID", sectionFont, gray, 1, Element.ALIGN_CENTER));
-            deviceTable.addCell(makeCell("Location", sectionFont, gray, 1, Element.ALIGN_CENTER));
+            // deviceTable.addCell(makeCell("Location", sectionFont, gray, 1, Element.ALIGN_CENTER));
 
             for (ConsultationDevice device : campaign.getSelectedDevices()) {
                 deviceTable.addCell(makeCell(device.getDeviceSerial(), normalFont, null, 1, Element.ALIGN_CENTER));
