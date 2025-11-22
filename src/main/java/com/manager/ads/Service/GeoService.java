@@ -20,7 +20,7 @@ public class GeoService {
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(response.getBody());
+            JsonNode root = mapper.readTree(response.getBody()); 
             JsonNode address = root.path("address");
 
             String city = address.path("city").asText("");

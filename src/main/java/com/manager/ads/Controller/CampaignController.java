@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.manager.ads.Entity.Campaign;
-
+import com.manager.ads.Entity.ConsultationDevice;
 import com.manager.ads.Entity.User;
 import com.manager.ads.Repository.CampaignRepository;
 import com.manager.ads.Repository.UserRepository;
@@ -41,7 +41,7 @@ public class CampaignController {
             @RequestParam("adFile") MultipartFile adFile,
             @RequestParam(required = true) String startDate,
             @RequestParam(required = true) String endDate,
-            @RequestParam List<Integer> selectedDevices,  // list of device IDs
+            @RequestParam List<Long> selectedDevices,  // list of device IDs
             @RequestParam int totalDevice,
             @RequestParam double totalPrice,
             @RequestParam Long userId,
@@ -68,6 +68,16 @@ public class CampaignController {
         return campaignRepository.findTopByUserIdOrderByCreatedAtDesc(userId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    } 
+    }
+    
+    @GetMapping("/{campaignId}/devices")
+    public ResponseEntity<?> getDevicesByCampaignId(@PathVariable Long campaignId) {
+        return campaignRepository.findById(campaignId)
+                .map(campaign -> {
+                    List<ConsultationDevice> devices = campaign.getSelectedDevices();
+                    return ResponseEntity.ok(devices);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
     
 }
